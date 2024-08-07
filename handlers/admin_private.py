@@ -6,8 +6,11 @@ from aiogram.fsm.state import State, StatesGroup
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.orm_query import (
+    orm_change_banner_image,
+    orm_get_categories,
     orm_add_product,
     orm_delete_product,
+    orm_get_info_pages,
     orm_get_product,
     orm_get_products,
     orm_update_product,
@@ -26,6 +29,7 @@ admin_router.message.filter(ChatFilters(["private"]), IsAdmin())
 ADMIN_KB = get_keyboard(
     "Добавить товар",
     "Ассортимент",
+    "Добавить | Изменить баннер",
     placeholder="Выберите действие",
     sizes=(2,),
 )
@@ -85,7 +89,7 @@ async def delete_product_callback(callback: types.CallbackQuery, session: AsyncS
 
 # Становимся в состояние ожидания ввода name
 @admin_router.callback_query(StateFilter(None), F.data.startswith("change_"))
-async def change_product_callback(callback: types.CallbackQuery, state: FSMContext ,session: AsyncSession):
+async def change_product_callback(callback: types.CallbackQuery, state: FSMContext, session: AsyncSession):
     product_id = callback.data.split("_")[-1]
     product_change = await orm_get_product(session, int(product_id))
 
@@ -127,7 +131,7 @@ async def back_step_handler(message: types.Message, state: FSMContext) -> None:
 
     if current_state == AddProduct.name:
         await message.answer(
-            'Предидущего шага нет, или введите название товара или напишите "отмена"'
+            'Предыдущего шага нет, или введите название товара или напишите "отмена"'
         )
         return
 

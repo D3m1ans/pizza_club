@@ -8,7 +8,6 @@ from aiogram.types import BotCommandScopeAllPrivateChats
 from aiogram.enums import ParseMode
 
 
-
 load_dotenv(find_dotenv())
 
 from middlewares.db import DataBaseSession
@@ -46,7 +45,7 @@ async def main():
     dp.update.middleware(DataBaseSession(session_pool=session_maker))
 
     await bot.delete_webhook(drop_pending_updates=True)
-    await bot.delete_my_commands(scope=types.BotCommandScopeAllPrivateChats())
+#    await bot.delete_my_commands(scope=types.BotCommandScopeAllPrivateChats())
 #    await bot.set_my_commands(commands=private, scope=BotCommandScopeAllPrivateChats())
     await dp.start_polling(bot, allowed_updates=dp.resolve_used_update_types())
 
