@@ -8,6 +8,7 @@ from aiogram.types import BotCommandScopeAllPrivateChats
 from aiogram.enums import ParseMode
 
 
+
 load_dotenv(find_dotenv())
 
 from middlewares.db import DataBaseSession
