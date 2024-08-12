@@ -16,14 +16,14 @@ from database.orm_query import (
     orm_update_product,
 )
 
-from filters.chat_types import ChatFilters, IsAdmin
+from filters.chat_types import ChatTypeFilter, IsAdmin
 
 from keyboard.inline_board import get_callback_btns
 from keyboard.reply_board import get_keyboard
 
 
 admin_router = Router()
-admin_router.message.filter(ChatFilters(["private"]), IsAdmin())
+admin_router.message.filter(ChatTypeFilter(["private"]), IsAdmin())
 
 
 ADMIN_KB = get_keyboard(

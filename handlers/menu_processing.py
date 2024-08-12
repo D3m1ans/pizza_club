@@ -1,15 +1,20 @@
 from aiogram.types import InputMediaPhoto
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from database.orm_query import orm_get_banner, orm_get_categories
-from keyboard.inline_board import get_user_main_buttons, get_user_catalog_buttons
-
+from database.orm_query import (
+    orm_get_banner,
+    orm_get_categories,
+)
+from keyboard.inline_board import (
+    get_user_catalog_btns,
+    get_user_main_btns,
+)
 
 async def main_menu(session, level, menu_name):
     banner = await orm_get_banner(session, menu_name)
     image = InputMediaPhoto(media=banner.image, caption=banner.description)
 
-    kbds = get_user_main_buttons(level=level)
+    kbds = get_user_main_btns(level=level)
 
     return image, kbds
 
@@ -19,7 +24,7 @@ async def catalog(session, level, menu_name):
     image = InputMediaPhoto(media=banner.image, caption=banner.description)
 
     categories = await orm_get_categories(session)
-    kbds = get_user_catalog_buttons(level=level, categories=categories)
+    kbds = get_user_catalog_btns(level=level, categories=categories)
 
     return image, kbds
 
