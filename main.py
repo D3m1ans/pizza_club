@@ -5,9 +5,6 @@ from aiogram import Bot, Dispatcher, types
 from dotenv import find_dotenv, load_dotenv
 from aiogram.types import BotCommandScopeAllPrivateChats
 
-from aiogram.enums import ParseMode
-
-
 load_dotenv(find_dotenv())
 
 from middlewares.db import DataBaseSession

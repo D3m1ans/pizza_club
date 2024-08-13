@@ -55,7 +55,8 @@ class AddProduct(StatesGroup):
 
 
 @admin_router.message(Command("admin"))
-async def admin_features(message: types.Message):
+async def admin_features(message: types.Message, state: FSMContext):
+    await state.clear()
     await message.answer("Что хотите сделать?", reply_markup=ADMIN_KB)
 
 
@@ -91,6 +92,42 @@ async def delete_product_callback(callback: types.CallbackQuery, session: AsyncS
 
     await callback.answer("Товар удален")
     await callback.message.answer("Товар удален!")
+
+@admin_router.message(StateFilter("*"), Command("отмена"))
+@admin_router.message(StateFilter("*"), F.text.casefold() == "отмена")
+async def cancel_handler(message: types.Message, state: FSMContext) -> None:
+    current_state = await state.get_state()
+    if current_state is None:
+        return
+    if AddProduct.product_for_change:
+        AddProduct.product_for_change = None
+    await state.clear()
+    await message.answer("Действия отменены", reply_markup=ADMIN_KB)
+
+
+# Вернутся на шаг назад (на прошлое состояние)
+@admin_router.message(StateFilter("*"), Command("назад"))
+@admin_router.message(StateFilter("*"), F.text.casefold() == "назад")
+async def back_step_handler(message: types.Message, state: FSMContext) -> None:
+    current_state = await state.get_state()
+
+    if current_state == AddProduct.name:
+        await message.answer(
+            'Предыдущего шага нет, или введите название товара или напишите "отмена"'
+        )
+        return
+
+    previous = None
+    for step in AddProduct.__all_states__:
+        if step.state == current_state:
+            await state.set_state(previous)
+            await message.answer(
+                f"Ок, вы вернулись к прошлому шагу \n {AddProduct.texts[previous.state]}"
+            )
+            return
+        previous = step
+
+
 
 # FSM:
 
@@ -145,44 +182,6 @@ async def add_product(message: types.Message, state: FSMContext):
         "Введите название товара", reply_markup=types.ReplyKeyboardRemove()
     )
     await state.set_state(AddProduct.name)
-
-
-# Хендлер отмены и сброса состояния должен быть всегда именно хдесь,
-# после того как только встали в состояние номер 1 (элементарная очередность фильтров)
-@admin_router.message(StateFilter("*"), Command("отмена"))
-@admin_router.message(StateFilter("*"), F.text.casefold() == "отмена")
-async def cancel_handler(message: types.Message, state: FSMContext) -> None:
-    current_state = await state.get_state()
-    if current_state is None:
-        return
-    if AddProduct.product_for_change:
-        AddProduct.product_for_change = None
-    await state.clear()
-    await message.answer("Действия отменены", reply_markup=ADMIN_KB)
-
-
-# Вернутся на шаг назад (на прошлое состояние)
-@admin_router.message(StateFilter("*"), Command("назад"))
-@admin_router.message(StateFilter("*"), F.text.casefold() == "назад")
-async def back_step_handler(message: types.Message, state: FSMContext) -> None:
-    current_state = await state.get_state()
-
-    if current_state == AddProduct.name:
-        await message.answer(
-            'Предыдущего шага нет, или введите название товара или напишите "отмена"'
-        )
-        return
-
-    previous = None
-    for step in AddProduct.__all_states__:
-        if step.state == current_state:
-            await state.set_state(previous)
-            await message.answer(
-                f"Ок, вы вернулись к прошлому шагу \n {AddProduct.texts[previous.state]}"
-            )
-            return
-        previous = step
-
 
 # Ловим данные для состояние name и потом меняем состояние на description
 @admin_router.message(AddProduct.name, F.text)
